@@ -1,0 +1,15 @@
+# Target labels
+ nuget-populate
+# Source files and their labels
+C:/Users/dif/creche_manager/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/nuget-populate
+C:/Users/dif/creche_manager/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/6c5f27a884483e45817bec9a48822dfd/nuget-populate.rule
+C:/Users/dif/creche_manager/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/d0d330f3c09c64bdfc5fe979d8904a26/nuget-populate-complete.rule
+C:/Users/dif/creche_manager/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/93a7979d0a2205e8132c3167883961cc/nuget-populate-build.rule
+C:/Users/dif/creche_manager/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/93a7979d0a2205e8132c3167883961cc/nuget-populate-configure.rule
+C:/Users/dif/creche_manager/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/93a7979d0a2205e8132c3167883961cc/nuget-populate-copyfile.rule
+C:/Users/dif/creche_manager/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/93a7979d0a2205e8132c3167883961cc/nuget-populate-download.rule
+C:/Users/dif/creche_manager/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/93a7979d0a2205e8132c3167883961cc/nuget-populate-install.rule
+C:/Users/dif/creche_manager/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/93a7979d0a2205e8132c3167883961cc/nuget-populate-mkdir.rule
+C:/Users/dif/creche_manager/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/93a7979d0a2205e8132c3167883961cc/nuget-populate-patch.rule
+C:/Users/dif/creche_manager/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/93a7979d0a2205e8132c3167883961cc/nuget-populate-test.rule
+C:/Users/dif/creche_manager/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/93a7979d0a2205e8132c3167883961cc/nuget-populate-update.rule

@@ -1,0 +1,49 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "C:/Users/dif/creche_manager/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/nuget-populate"
+		},
+		{
+			"file" : "C:/Users/dif/creche_manager/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/6c5f27a884483e45817bec9a48822dfd/nuget-populate.rule"
+		},
+		{
+			"file" : "C:/Users/dif/creche_manager/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/d0d330f3c09c64bdfc5fe979d8904a26/nuget-populate-complete.rule"
+		},
+		{
+			"file" : "C:/Users/dif/creche_manager/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/93a7979d0a2205e8132c3167883961cc/nuget-populate-build.rule"
+		},
+		{
+			"file" : "C:/Users/dif/creche_manager/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/93a7979d0a2205e8132c3167883961cc/nuget-populate-configure.rule"
+		},
+		{
+			"file" : "C:/Users/dif/creche_manager/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/93a7979d0a2205e8132c3167883961cc/nuget-populate-copyfile.rule"
+		},
+		{
+			"file" : "C:/Users/dif/creche_manager/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/93a7979d0a2205e8132c3167883961cc/nuget-populate-download.rule"
+		},
+		{
+			"file" : "C:/Users/dif/creche_manager/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/93a7979d0a2205e8132c3167883961cc/nuget-populate-install.rule"
+		},
+		{
+			"file" : "C:/Users/dif/creche_manager/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/93a7979d0a2205e8132c3167883961cc/nuget-populate-mkdir.rule"
+		},
+		{
+			"file" : "C:/Users/dif/creche_manager/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/93a7979d0a2205e8132c3167883961cc/nuget-populate-patch.rule"
+		},
+		{
+			"file" : "C:/Users/dif/creche_manager/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/93a7979d0a2205e8132c3167883961cc/nuget-populate-test.rule"
+		},
+		{
+			"file" : "C:/Users/dif/creche_manager/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/93a7979d0a2205e8132c3167883961cc/nuget-populate-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"nuget-populate"
+		],
+		"name" : "nuget-populate"
+	}
+}
