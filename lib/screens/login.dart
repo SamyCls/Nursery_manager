@@ -4,8 +4,6 @@ import '/screens/dashboard.dart';
 import '/models/utilisateurs.dart';
 import '/app_state.dart';
 import '/db/usersdao.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '/trial.service.dart'; // Import the trial service
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -20,110 +18,13 @@ class _LoginScreenState extends State<LoginScreen> {
   final UserDao _userDao = UserDao();
   bool _isLoading = false;
   bool _obscurePassword = true;
-  int _remainingDays = 3;
-  bool _trialExpired = false;
 
   @override
   void initState() {
     super.initState();
-    _checkTrialStatus();
-  }
-
-  Future<void> _checkTrialStatus() async {
-    // Use the enhanced trial verification
-    final bool expired = await isTrialExpired();
-    
-    if (expired) {
-      if (mounted) {
-        setState(() {
-          _trialExpired = true;
-          _remainingDays = 0;
-        });
-        
-        // Rediriger vers la page d'expiration
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            Navigator.pushReplacementNamed(context, "/trial_expired");
-          }
-        });
-      }
-      return;
-    }
-    
-    // Calculate remaining days if trial is still active
-    final prefs = await SharedPreferences.getInstance();
-    final installationDate = prefs.getString('installation_date');
-    
-    if (installationDate == null) {
-      if (mounted) {
-        setState(() {
-          _remainingDays = 30;
-          _trialExpired = false;
-        });
-      }
-      return;
-    }
-    
-    final installDate = DateTime.parse(installationDate);
-    final currentDate = DateTime.now();
-    final difference = currentDate.difference(installDate).inDays;
-    final remaining = 30 - difference;
-    
-    if (mounted) {
-      setState(() {
-        _remainingDays = remaining > 0 ? remaining : 0;
-        _trialExpired = false;
-      });
-    }
-    
-    // CRITICAL FIX: Immediately redirect if remaining days calculation is negative
-    // This happens when user sets time back to get more days
-    if (difference > 30) {
-      if (mounted) {
-        setState(() {
-          _trialExpired = true;
-          _remainingDays = 0;
-        });
-      }
-      
-      // Mark as expired in preferences
-      await prefs.setBool('trial_expired', true);
-      
-      // Rediriger vers la page d'expiration
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          Navigator.pushReplacementNamed(context, "/trial_expired");
-        }
-      });
-    }
   }
 
   Future<void> _login() async {
-    // Vérifier d'abord si l'essai est expiré
-    if (_trialExpired || await isTrialExpired()) {
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, "/trial_expired");
-      }
-      return;
-    }
-    
-    // Additional check: if remaining days calculation shows negative value
-    final prefs = await SharedPreferences.getInstance();
-    final installationDate = prefs.getString('installation_date');
-    if (installationDate != null) {
-      final installDate = DateTime.parse(installationDate);
-      final currentDate = DateTime.now();
-      final difference = currentDate.difference(installDate).inDays;
-      
-      if (difference > 30) {
-        await prefs.setBool('trial_expired', true);
-        if (mounted) {
-          Navigator.pushReplacementNamed(context, "/trial_expired");
-        }
-        return;
-      }
-    }
-    
     if (mounted) {
       setState(() {
         _isLoading = true;
@@ -231,17 +132,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // CRITICAL FIX: Check if remaining days calculation shows negative value
-    // and immediately redirect to trial expired screen
-    if (_remainingDays < 0) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          Navigator.pushReplacementNamed(context, "/trial_expired");
-        }
-      });
-      return Container(); // Return empty container while redirecting
-    }
-    
     return Scaffold(
       backgroundColor: Colors.white,
       body: LayoutBuilder(
@@ -266,10 +156,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         fit: BoxFit.contain,
                       ),
                     ),
-                    
-                    // Affichage des jours d'essai restants - placé en bas
-                    const SizedBox(height: 20),
-                    _buildTrialInfo(),
                   ],
                 ),
               ),
@@ -287,8 +173,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         _buildLoginForm(),
-                        const SizedBox(height: 20),
-                        _buildTrialInfo(),
                       ],
                     ),
                   ),
@@ -419,23 +303,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildTrialInfo() {
-    return Container(
-      width: double.infinity,
-      alignment: Alignment.center,
-      child: Text(
-        _trialExpired 
-          ? "Période d'essai expirée" 
-          : "Période d'essai: $_remainingDays jour${_remainingDays > 1 ? 's' : ''} restant${_remainingDays > 1 ? 's' : ''}",
-        style: TextStyle(
-          color: _trialExpired ? Colors.red : Colors.grey,
-          fontSize: 14,
-          fontWeight: _trialExpired ? FontWeight.bold : FontWeight.normal,
-        ),
-      ),
     );
   }
 }

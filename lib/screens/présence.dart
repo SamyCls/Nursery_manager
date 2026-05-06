@@ -142,7 +142,6 @@ class _PresenceScreenState extends State<PresenceScreen> {
                       selectedClassFilter = value == "Tous" ? null : value;
                     });
                   },
-                  icon: const Icon(Icons.filter_list, color: Colors.black),
                   itemBuilder: (context) => [
                     const PopupMenuItem(
                       value: "Tous",
@@ -151,6 +150,26 @@ class _PresenceScreenState extends State<PresenceScreen> {
                     ...classes.map((classe) =>
                         PopupMenuItem(value: classe, child: Text("🏫 $classe"))),
                   ],
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade400),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.filter_list, color: Colors.black, size: 18),
+                        const SizedBox(width: 8),
+                        Text(
+                          selectedClassFilter ?? "Toutes les classes",
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.arrow_drop_down, color: Colors.black),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
