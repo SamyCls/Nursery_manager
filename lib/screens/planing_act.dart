@@ -28,20 +28,20 @@ class _WeeklyPlannerPageState extends State<WeeklyPlannerPage> {
   ];
 
   final Map<String, Color> activityColors = {
-    'Jeux': Colors.blueAccent,
-    'Lecture': Colors.greenAccent,
-    'Sport': Colors.redAccent,
-    'Art': Colors.purpleAccent,
-    'Musique': Colors.orangeAccent,
+    'Jeux':    const Color(0xFF3B82F6), // blue
+    'Lecture': const Color(0xFF10B981), // emerald
+    'Sport':   const Color(0xFFEF4444), // red
+    'Art':     const Color(0xFF8B5CF6), // violet
+    'Musique': const Color(0xFFF59E0B), // amber
   };
 
   String? selectedClass;
-  DateTime weekStart = _startOfWeek(DateTime.now());
   String? selectedActivityType;
   TimeOfDay? selectedStartTime;
   TimeOfDay? selectedEndTime;
   final TextEditingController notesController = TextEditingController();
   Activity? selectedActivity;
+  DateTime selectedDate = DateTime.now();
 
   final ActivityDao activityDao = ActivityDao();
   final EnfantDao enfantDao = EnfantDao();
@@ -121,89 +121,47 @@ class _WeeklyPlannerPageState extends State<WeeklyPlannerPage> {
   }
 
   pw.Widget _buildPDFTable() {
-    final weekDays = getWeekDays(weekStart);
-    
     return pw.Table(
       border: pw.TableBorder.all(color: PdfColors.black, width: 1),
       children: [
-        // Header row with days
         pw.TableRow(
           children: [
             pw.Container(
               padding: const pw.EdgeInsets.all(8),
               child: pw.Text('Heure', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
             ),
-            ...weekDays.map((day) {
-              return pw.Container(
-                padding: const pw.EdgeInsets.all(8),
-                child: pw.Column(
-                  children: [
-                    pw.Text(
-                      DateFormat.EEEE('fr_FR').format(day),
-                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.Text(
-                      DateFormat('dd/MM', 'fr_FR').format(day),
-                      style: const pw.TextStyle(fontSize: 10),
-                    ),
-                  ],
-                ),
-              );
-            }),
+            pw.Container(
+              padding: const pw.EdgeInsets.all(8),
+              child: pw.Text(
+                DateFormat('EEEE d MMMM yyyy', 'fr_FR').format(selectedDate),
+                style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+              ),
+            ),
           ],
         ),
-        
-        // Time slots rows
         ...List.generate(numberOfRows, (index) {
           final hour = startHour.hour + index;
           final timeText = '$hour:00';
-          
+          final dayActivities = _getActivitiesForDayAndClass(selectedDate);
+          final activitiesForThisHour = dayActivities.where((a) => a.start.hour == hour).toList();
+
           return pw.TableRow(
             children: [
               pw.Container(
                 padding: const pw.EdgeInsets.all(4),
                 child: pw.Text(timeText, style: const pw.TextStyle(fontSize: 10)),
               ),
-              ...weekDays.map((day) {
-                final dayActivities = _getActivitiesForDayAndClass(day);
-                final activitiesForThisHour = dayActivities.where((activity) {
-                  return activity.start.hour == hour;
-                }).toList();
-                
-                if (activitiesForThisHour.isEmpty) {
-                  return pw.Container(
-                    padding: const pw.EdgeInsets.all(4),
-                    height: 30,
-                    child: pw.Text(''),
-                  );
-                }
-                
-                // Get the activity color
-                final activity = activitiesForThisHour.first;
-                final color = activityColors[activity.title] ?? Colors.grey;
-                final pdfColor = PdfColor.fromInt(color.value);
-                
-                return pw.Container(
-                  height: 30,
-                  decoration: pw.BoxDecoration(
-                    color: pdfColor,
-                    border: pw.TableBorder(
-                      left: const pw.BorderSide(width: 1, color: PdfColors.black),
-                      right: const pw.BorderSide(width: 1, color: PdfColors.black),
-                      top: index == 0 
-                          ? const pw.BorderSide(width: 1, color: PdfColors.black)
-                          :  const pw.BorderSide(width: 0, color: PdfColors.white),
-                      bottom: const pw.BorderSide(width: 1, color: PdfColors.black),
+              activitiesForThisHour.isEmpty
+                  ? pw.Container(height: 30, child: pw.Text(''))
+                  : pw.Container(
+                      height: 30,
+                      child: pw.Center(
+                        child: pw.Text(
+                          activitiesForThisHour.first.title,
+                          style: const pw.TextStyle(fontSize: 10),
+                        ),
+                      ),
                     ),
-                  ),
-                  child: pw.Center(
-                    child: pw.Text(
-                      activity.title,
-                      style: const pw.TextStyle(fontSize: 10, color: PdfColors.white),
-                    ),
-                  ),
-                );
-              }),
             ],
           );
         }),
@@ -220,15 +178,12 @@ class _WeeklyPlannerPageState extends State<WeeklyPlannerPage> {
   List<DateTime> getWeekDays(DateTime start) =>
       List.generate(7, (i) => start.add(Duration(days: i)));
 
-  String _formatWeekRange(DateTime start) {
-    final end = start.add(const Duration(days: 6));
-    final df = DateFormat('dd MMM yyyy', 'fr_FR');
-    return '${df.format(start)} - ${df.format(end)}';
-  }
+  String _formatDay(DateTime date) =>
+      DateFormat('EEEE d MMMM yyyy', 'fr_FR').format(date);
 
-  void _changeWeek(DateTime newDate) {
+  void _changeDate(DateTime newDate) {
     setState(() {
-      weekStart = _startOfWeek(newDate);
+      selectedDate = DateTime(newDate.year, newDate.month, newDate.day);
       selectedActivity = null;
     });
   }
@@ -482,6 +437,21 @@ void _addOrEditActivity({Activity? activityToEdit}) {
       );
   }
 
+  List<Activity> _getActivitiesForDateAndClass(
+      DateTime date, String className) {
+    return allActivities.where((activity) {
+      return activity.className == className &&
+          activity.date.year == date.year &&
+          activity.date.month == date.month &&
+          activity.date.day == date.day;
+    }).toList()
+      ..sort(
+        (a, b) =>
+            (a.start.hour * 60 + a.start.minute) -
+            (b.start.hour * 60 + b.start.minute),
+      );
+  }
+
   Future<void> _generateAndViewPDF() async {
   try {
     final pdf = pw.Document();
@@ -494,17 +464,12 @@ void _addOrEditActivity({Activity? activityToEdit}) {
             pw.Header(
               level: 0,
               child: pw.Text(
-                'Planning Hebdomadaire - ${selectedClass ?? ''}',
+                'Planning du ${DateFormat("EEEE d MMMM yyyy", "fr_FR").format(selectedDate)} - ${selectedClass ?? ""}',
                 style: pw.TextStyle(
                   fontSize: 20,
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
-            ),
-            
-            pw.Text(
-              _formatWeekRange(weekStart),
-              style: const pw.TextStyle(fontSize: 14),
             ),
             
             pw.SizedBox(height: 20),
@@ -518,7 +483,7 @@ void _addOrEditActivity({Activity? activityToEdit}) {
     // Get the application documents directory
     final directory = await getApplicationDocumentsDirectory();
     final path = directory.path;
-    final file = File('$path/weekly_planner_${selectedClass}_${weekStart.millisecondsSinceEpoch}.pdf');
+    final file = File('$path/planning_${selectedClass}_${DateFormat('yyyy-MM-dd').format(selectedDate)}.pdf');
     
     // Save the PDF to file
     await file.writeAsBytes(await pdf.save());
@@ -671,71 +636,53 @@ void _addOrEditActivity({Activity? activityToEdit}) {
                 ),
                 const SizedBox(width: 12),
 
+                // Day navigation
+                IconButton(
+                  icon: const Icon(Icons.chevron_left),
+                  tooltip: 'Jour précédent',
+                  onPressed: () => _changeDate(
+                      selectedDate.subtract(const Duration(days: 1))),
+                ),
                 Expanded(
                   child: GestureDetector(
                     onTap: () async {
                       final picked = await showDatePicker(
                         context: context,
-                        initialDate: weekStart,
+                        initialDate: selectedDate,
                         firstDate: DateTime(2000),
                         lastDate: DateTime(2100),
                       );
-                      if (picked != null && mounted) _changeWeek(picked);
+                      if (picked != null && mounted) _changeDate(picked);
                     },
                     child: Container(
+                      alignment: Alignment.center,
                       padding: const EdgeInsets.symmetric(
-                        vertical: 10,
-                        horizontal: 12,
-                      ),
+                          vertical: 10, horizontal: 12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1e73be),
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade300),
                       ),
                       child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.calendar_month,
-                              color: Colors.black54),
-                          const SizedBox(width: 8),
+                          const Icon(Icons.calendar_today, size: 14, color: Color(0xFF3B82F6)),
+                          const SizedBox(width: 6),
                           Text(
-                            _formatWeekRange(weekStart),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            _formatDay(selectedDate),
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                            textAlign: TextAlign.center,
                           ),
-                          const Spacer(),
-                          const Icon(Icons.arrow_drop_down,
-                              color: Colors.black54),
                         ],
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
-
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE3E8FB),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: DropdownButton<String>(
-                    value: selectedClass,
-                    underline: const SizedBox(),
-                    onChanged: (v) {
-                      setState(() {
-                        selectedClass = v!;
-                        selectedActivity = null;
-                      });
-                    },
-                    items: classes
-                        .map(
-                          (c) => DropdownMenuItem(value: c, child: Text(c)),
-                        )
-                        .toList(),
-                  ),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right),
+                  tooltip: 'Jour suivant',
+                  onPressed: () =>
+                      _changeDate(selectedDate.add(const Duration(days: 1))),
                 ),
               ],
             ),
@@ -743,180 +690,32 @@ void _addOrEditActivity({Activity? activityToEdit}) {
           const SizedBox(height: 14),
 
           Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 0),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final availableWidth = constraints.maxWidth;
-                  cellWidth = availableWidth / 7;
-                  
-                  final availableHeight = constraints.maxHeight;
-                  final calculatedCellHeight = availableHeight - 40;
-                  
-                  return Column(
-                    children: [
-                      Row(
-                        children: getWeekDays(weekStart).map((d) {
-                          return Container(
-                            width: cellWidth,
-                            height: 40,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF1e73be),
-                              border: Border.all(
-                                color: Colors.white,
-                                width: 0.5,
-                              ),
+            child: Column(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0xFFE5E7EB)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
                             ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  DateFormat.EEEE('fr_FR').format(d),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  DateFormat('dd MMM', 'fr_FR').format(d),
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                      ),
-
-                      Expanded(
-                        child: SingleChildScrollView(
-                          child: SizedBox(
-                            height: calculatedCellHeight,
-                            child: Row(
-                              children: getWeekDays(weekStart).map((day) {
-                                final dayActivities =
-                                    _getActivitiesForDayAndClass(day);
-                                return Container(
-                                  width: cellWidth,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFe9f2fb),
-                                    border: Border.all(
-                                      color: Colors.grey.shade300,
-                                      width: 0.5,
-                                    ),
-                                  ),
-                                  child: Stack(
-                                    children: [
-                                      ...List.generate(numberOfRows, (index) {
-                                        final hour = startHour.hour + index;
-                                        return Positioned(
-                                          top: (index / numberOfRows) * calculatedCellHeight,
-                                          left: 0,
-                                          right: 0,
-                                          child: Row(
-                                            children: [
-                                              SizedBox(
-                                                width: 30,
-                                                child: Text(
-                                                  '$hour:00',
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                    color: Colors.grey.shade600,
-                                                  ),
-                                                ),
-                                              ),
-                                              Expanded(
-                                                child: Container(
-                                                  height: 1,
-                                                  color: Colors.grey.withOpacity(0.3),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      }),
-
-                                      ...dayActivities.map((activity) {
-                                        final top = _calculateTopOffsetForHeight(
-                                            activity.start, calculatedCellHeight);
-                                        final height = _calculateHeightForHeight(
-                                          activity.start,
-                                          activity.end,
-                                          calculatedCellHeight,
-                                        );
-                                        final color =
-                                            activityColors[activity.title] ??
-                                                Colors.grey;
-
-                                        return Positioned(
-                                          top: top,
-                                          left: 4,
-                                          right: 4,
-                                          height: height,
-                                          child: GestureDetector(
-                                            onTap: () {
-                                              setState(() {
-                                                selectedActivity = activity;
-                                              });
-                                            },
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                color: selectedActivity?.id ==
-                                                        activity.id
-                                                    ? Colors.black26
-                                                    : color,
-                                                borderRadius:
-                                                    BorderRadius.circular(4),
-                                              ),
-                                              padding: const EdgeInsets.all(4),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    activity.title,
-                                                    style: const TextStyle(
-                                                      fontWeight: FontWeight.bold,
-                                                      fontSize: 12,
-                                                    ),
-                                                  ),
-                                                  Text(
-                                                    '${activity.start.format(context)} - ${activity.end.format(context)}',
-                                                    style: const TextStyle(
-                                                      fontSize: 10,
-                                                    ),
-                                                  ),
-                                                  if (activity.notes.isNotEmpty)
-                                                    Text(
-                                                      activity.notes,
-                                                      style: const TextStyle(
-                                                        fontSize: 10,
-                                                      ),
-                                                      maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      }).toList(),
-                                    ],
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                          ),
+                          ],
                         ),
+                        child: _buildGrid(),
                       ),
-                    ],
-                  );
-                },
-              ),
+                    ),
+                  ),
+                ),
+                _buildActivityTypesLegend(),
+              ],
             ),
           ),
         ],
@@ -924,15 +723,300 @@ void _addOrEditActivity({Activity? activityToEdit}) {
     );
   }
 
-  double _calculateTopOffsetForHeight(TimeOfDay time, double containerHeight) {
-    final totalMinutes =
-        (time.hour - startHour.hour) * 60 + (time.minute - startHour.minute);
-    return (totalMinutes / 60) * (containerHeight / numberOfRows);
+  // ── Grid constants & helpers ────────────────────────────────────────────
+
+  static const double _hourHeight = 72.0;
+  static const double _timeColWidth = 72.0;
+  static const double _classColWidth = 180.0;
+
+  double _topForTime(TimeOfDay time) {
+    final minutes = (time.hour - startHour.hour) * 60 + time.minute;
+    return (minutes / 60.0) * _hourHeight;
   }
 
-  double _calculateHeightForHeight(TimeOfDay start, TimeOfDay end, double containerHeight) {
-    final durationMinutes =
-        (end.hour - start.hour) * 60 + (end.minute - start.minute);
-    return (durationMinutes / 60) * (containerHeight / numberOfRows);
+  double _heightForDuration(TimeOfDay start, TimeOfDay end) {
+    final minutes = (end.hour - start.hour) * 60 + (end.minute - start.minute);
+    return (minutes / 60.0) * _hourHeight;
+  }
+
+  Widget _buildActivityCard(Activity activity) {
+    final color = activityColors[activity.title] ?? const Color(0xFF6366F1);
+    final isSelected = selectedActivity?.id == activity.id;
+    return GestureDetector(
+      onTap: () => setState(() => selectedActivity = activity),
+      child: Container(
+        decoration: BoxDecoration(
+          color: isSelected ? color.withOpacity(0.75) : color.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(8),
+          border: Border(
+            left: BorderSide(color: color, width: 4),
+            top: isSelected ? BorderSide(color: color, width: 1.5) : BorderSide.none,
+            right: isSelected ? BorderSide(color: color, width: 1.5) : BorderSide.none,
+            bottom: isSelected ? BorderSide(color: color, width: 1.5) : BorderSide.none,
+          ),
+        ),
+        padding: const EdgeInsets.only(left: 6, right: 6, top: 4, bottom: 4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              activity.title,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: isSelected ? Colors.white : color,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            if (activity.notes.isNotEmpty)
+              Text(
+                activity.notes,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: isSelected
+                      ? Colors.white70
+                      : color.withOpacity(0.75),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGrid() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final int numClasses = classes.length;
+        final double colWidth = numClasses > 0
+            ? ((constraints.maxWidth - _timeColWidth) / numClasses)
+                .clamp(_classColWidth, double.infinity)
+            : _classColWidth;
+
+        return Column(
+          children: [
+            // ── Header row ──────────────────────────────────────────────
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  Container(
+                    width: _timeColWidth,
+                    height: 50,
+                    alignment: Alignment.center,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFF0F4FF),
+                      border: Border(
+                        right: BorderSide(color: Color(0xFFD1D5DB), width: 1),
+                        bottom: BorderSide(color: Color(0xFFD1D5DB), width: 1),
+                      ),
+                    ),
+                    child: const Text(
+                      'Time',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF6B7280),
+                        fontSize: 12,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                  ...classes.map((cls) => Container(
+                        width: colWidth,
+                        height: 50,
+                        alignment: Alignment.center,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFF0F4FF),
+                          border: Border(
+                            right: BorderSide(
+                                color: Color(0xFFD1D5DB), width: 1),
+                            bottom: BorderSide(
+                                color: Color(0xFFD1D5DB), width: 1),
+                          ),
+                        ),
+                        child: Text(
+                          cls,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: Color(0xFF374151),
+                            letterSpacing: 0.3,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      )),
+                ],
+              ),
+            ),
+            // ── Body ────────────────────────────────────────────────────
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, bodyConstraints) {
+                  final double availableHeight = bodyConstraints.maxHeight;
+                  final double dynamicHourHeight = availableHeight > _hourHeight * numberOfRows
+                      ? availableHeight / numberOfRows
+                      : _hourHeight;
+                  final double dynamicTotalHeight = dynamicHourHeight * numberOfRows;
+
+                  return SingleChildScrollView(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Time column
+                          Column(
+                            children: List.generate(numberOfRows, (i) {
+                              final hour = startHour.hour + i;
+                              final label = hour < 12
+                                  ? '$hour:00 AM'
+                                  : hour == 12
+                                      ? '12:00 PM'
+                                      : '${hour - 12}:00 PM';
+                              return Container(
+                                width: _timeColWidth,
+                                height: dynamicHourHeight,
+                                alignment: Alignment.topCenter,
+                                padding: const EdgeInsets.only(top: 6),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFF9FAFB),
+                                  border: Border(
+                                    right: BorderSide(
+                                        color: Color(0xFFE5E7EB), width: 1),
+                                    bottom: BorderSide(
+                                        color: Color(0xFFE5E7EB), width: 1),
+                                  ),
+                                ),
+                                child: Text(
+                                  label,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: Color(0xFF6B7280),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              );
+                            }),
+                          ),
+                          // Class columns
+                          ...List.generate(classes.length, (idx) {
+                            final cls = classes[idx];
+                            final activities =
+                                _getActivitiesForDateAndClass(selectedDate, cls);
+                            final colBg = idx.isEven
+                                ? Colors.white
+                                : const Color(0xFFF9FAFB);
+                        return Container(
+                          width: colWidth,
+                          height: dynamicTotalHeight,
+                          decoration: BoxDecoration(
+                            color: colBg,
+                            border: const Border(
+                              right: BorderSide(
+                                  color: Color(0xFFE5E7EB), width: 1),
+                            ),
+                          ),
+                          child: Stack(
+                            children: [
+                              ...List.generate(
+                                  numberOfRows,
+                                  (i) => Positioned(
+                                        top: i * dynamicHourHeight,
+                                        left: 0,
+                                        right: 0,
+                                        child: Container(
+                                          height: 1,
+                                          color: const Color(0xFFE5E7EB),
+                                        ),
+                                      )),
+                              ...activities.map((activity) {
+                                final totalMinutes = (activity.start.hour - startHour.hour) * 60 + activity.start.minute;
+                                final durationMinutes = (activity.end.hour - activity.start.hour) * 60 + (activity.end.minute - activity.start.minute);
+                                double top = (totalMinutes / 60.0) * dynamicHourHeight;
+                                double height = (durationMinutes / 60.0) * dynamicHourHeight;
+                                top = top.clamp(0.0, dynamicTotalHeight - 24);
+                                if (top + height > dynamicTotalHeight)
+                                  height = dynamicTotalHeight - top;
+                                if (height < 24) height = 24;
+                                return Positioned(
+                                  top: top,
+                                  left: 4,
+                                  right: 4,
+                                  height: height,
+                                  child: _buildActivityCard(activity),
+                                );
+                              }),
+                            ],
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+              );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildActivityTypesLegend() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF9FAFB),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          const Text(
+            'Activity Types:  ',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF374151),
+              fontSize: 12,
+            ),
+          ),
+          ...activityTypes.map((type) {
+            final color = activityColors[type] ?? const Color(0xFF6366F1);
+            return Container(
+              margin: const EdgeInsets.only(right: 8),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: color.withOpacity(0.35)),
+              ),
+              child: Text(
+                type,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
   }
 }

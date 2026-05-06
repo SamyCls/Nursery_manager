@@ -19,7 +19,7 @@ class _ListeEnfantsPageState extends State<ListeEnfantsPage> {
 
   // Variables d'état pour la pagination, la recherche et les filtres
   int currentPage = 0;
-  int itemsPerPage = 5;
+  int itemsPerPage = 10;
   String searchQuery = '';
   String? selectedFilter;
   String? selectedStatus;
@@ -80,6 +80,7 @@ class _ListeEnfantsPageState extends State<ListeEnfantsPage> {
   Widget build(BuildContext context) {
     if (isLoading) {
       return MainLayout(
+        activeRoute: '/enfants',
         child: Center(child: CircularProgressIndicator()),
       );
     }
@@ -94,6 +95,7 @@ class _ListeEnfantsPageState extends State<ListeEnfantsPage> {
         filteredEnfants.isNotEmpty ? filteredEnfants.sublist(startIndex, endIndex) : [];
     
     return MainLayout(
+      activeRoute: '/enfants',
       child: Focus(
         focusNode: _focusNode,
         onFocusChange: (hasFocus) {
@@ -229,48 +231,6 @@ class _ListeEnfantsPageState extends State<ListeEnfantsPage> {
                           child: Text('Inactif'),
                         ),
                       ],
-                    ),
-                  ),
-
-                  // Dropdown pour choisir le nombre d'enfants par page
-                  SizedBox(
-                    width: 140,
-                    child: DropdownButtonFormField2<int>(
-                      value: itemsPerPage,
-                      decoration: const InputDecoration(
-                        labelText: 'Enfant par page',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                        ),
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                      ),
-                      dropdownStyleData: DropdownStyleData(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(15),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black26,
-                              blurRadius: 5,
-                              offset: Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                      ),
-                      items: [5, 10, 15]
-                          .map(
-                            (e) => DropdownMenuItem(value: e, child: Text('$e')),
-                          )
-                          .toList(),
-                      onChanged: (val) {
-                        setState(() {
-                          itemsPerPage = val!;
-                          currentPage = 0; // Réinitialiser à la première page
-                        });
-                      },
                     ),
                   ),
 

@@ -295,6 +295,35 @@ Future<Map<String, double>> getExpensesByCategoryForMonth(int year, int month) a
   }
 }
 
+  // Get monthly expenses for a full year (parallel to getRevenueByMonth)
+  Future<List<FlSpot>> getExpensesByMonth(int year) async {
+    try {
+      final db = await _databaseHelper.database;
+      final result = await db.rawQuery('''
+        SELECT
+          substr(date, 6, 2) as month,
+          SUM(montant) as total
+        FROM depenses
+        WHERE substr(date, 1, 4) = ?
+        GROUP BY substr(date, 6, 2)
+        ORDER BY month
+      ''', [year.toString()]);
+
+      final List<FlSpot> spots = List.generate(12, (i) => FlSpot(i.toDouble(), 0));
+      for (var row in result) {
+        final month = int.tryParse(row['month'] as String? ?? '') ?? 1;
+        final total = (row['total'] as num?)?.toDouble() ?? 0;
+        if (month >= 1 && month <= 12) {
+          spots[month - 1] = FlSpot((month - 1).toDouble(), total);
+        }
+      }
+      return spots;
+    } catch (e) {
+      print('Error in getExpensesByMonth: $e');
+      return List.generate(12, (i) => FlSpot(i.toDouble(), 0));
+    }
+  }
+
   // Get available years from payments
   Future<List<int>> getAvailableYears() async {
     try {
@@ -305,10 +334,18 @@ Future<Map<String, double>> getExpensesByCategoryForMonth(int year, int month) a
         ORDER by year DESC
       ''');
       
-      return result.map((row) {
+      final years = result.map((row) {
         final yearStr = row['year'] as String?;
         return int.tryParse(yearStr ?? '') ?? DateTime.now().year;
       }).toList();
+
+      // Always include the current year so the default selection is valid
+      final currentYear = DateTime.now().year;
+      if (!years.contains(currentYear)) {
+        years.insert(0, currentYear);
+      }
+
+      return years;
     } catch (e) {
       print('Error in getAvailableYears: $e');
       return [DateTime.now().year];

@@ -56,7 +56,7 @@ class _EnfantProfilScreenState extends State<EnfantProfilScreen> {
   final FocusNode _classeFocusNode = FocusNode();
   
   // Options for statut familial dropdown
-  final List<String> statutFamilialOptions = ['Mariée', 'Divorcé', 'Autre'];
+  final List<String> statutFamilialOptions = ['Mariés', 'Divorcés', 'Veufs', 'Autre'];
 
   // For date inscription editing
   bool _isEditingDateInscription = false;
@@ -79,7 +79,7 @@ class _EnfantProfilScreenState extends State<EnfantProfilScreen> {
       text: e.dateNaissance ?? '',
     );
     adresseController = TextEditingController(text: e.adresse);
-    sexeController = TextEditingController(text: e.sexe ?? '');
+    sexeController = TextEditingController(text: _normalizeSexe(e.sexe ?? ''));
     classeController = TextEditingController(text: e.classe);
     nomPrenomPereController = TextEditingController(
       text: e.nomPrenomPere ?? '',
@@ -149,6 +149,13 @@ class _EnfantProfilScreenState extends State<EnfantProfilScreen> {
         _capitalizeClass();
       }
     });
+  }
+
+  // Normalize legacy single-letter sexe values ('M'/'F') to full words
+  String _normalizeSexe(String raw) {
+    if (raw == 'M') return 'Masculin';
+    if (raw == 'F') return 'Féminin';
+    return raw;
   }
 
   // Function to capitalize names (first letter of each word)
@@ -826,7 +833,7 @@ Future<String> _generateNextId() async {
       return Padding(
         padding: const EdgeInsets.only(bottom: 12),
         child: DropdownButtonFormField<String>(
-          value: controller.text.isNotEmpty ? controller.text : null,
+          value: ['Masculin', 'Féminin'].contains(controller.text) ? controller.text : null,
           decoration: InputDecoration(
             labelText: label,
             border: const OutlineInputBorder(),
@@ -907,7 +914,7 @@ Future<String> _generateNextId() async {
       return Padding(
         padding: const EdgeInsets.only(bottom: 12),
         child: DropdownButtonFormField<String>(
-          value: controller.text.isNotEmpty ? controller.text : null,
+          value: statutFamilialOptions.contains(controller.text) ? controller.text : null,
           decoration: InputDecoration(
             labelText: label,
             border: const OutlineInputBorder(),

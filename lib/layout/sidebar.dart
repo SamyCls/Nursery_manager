@@ -39,7 +39,8 @@ Widget _getPageFromRoute(String route) {
 
 /// 🔹 Composant Sidebar (menu latéral)
 class Sidebar extends StatefulWidget {
-  const Sidebar({super.key});
+  final String activeRoute;
+  const Sidebar({super.key, this.activeRoute = '/'});
 
   @override
   State<Sidebar> createState() => _SidebarState();
@@ -94,26 +95,66 @@ class _SidebarState extends State<Sidebar> with TickerProviderStateMixin {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
 
-         
-
-          const Divider(
-            color: Colors.black26,
-            thickness: 1,
-            indent: 24,
-            endIndent: 24,
+          // ── Profil utilisateur ─────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 22,
+                  backgroundColor: const Color(0xFF3B82F6),
+                  child: Text(
+                    currentUser != null && currentUser!.username.isNotEmpty
+                        ? currentUser!.username[0].toUpperCase()
+                        : '?',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        currentUser != null ? currentUser!.username : 'Inconnu',
+                        style: const TextStyle(
+                          color: Colors.black87,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        currentUser != null && currentUser!.isAdmin
+                            ? 'Admin Panel'
+                            : 'Utilisateur',
+                        style: const TextStyle(
+                          color: Color(0xFF3B82F6),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
 
-          // Affichez le type de compte selon le rôle
-         // Affichez le nom d'utilisateur
-Padding(
-  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
-  child: Text(
-    "Utilisateur: ${currentUser != null ? currentUser!.username : 'Non connecté'}",
-    style: const TextStyle(color: Colors.black87, fontSize: 14),
-  ),
-),
+          const SizedBox(height: 16),
+          const Divider(
+            color: Colors.black12,
+            thickness: 1,
+            indent: 16,
+            endIndent: 16,
+          ),
+          const SizedBox(height: 4),
           /// 🔹 Menu principal
           Expanded(
             child: SingleChildScrollView(
@@ -126,12 +167,14 @@ Padding(
                         child: _SidebarItem(
                           icon: item['icon'],
                           label: item['label'],
+                          isActive: currentSidebarRoute == item['route'],
                           onTap: () {
                             if (item['isPaiement'] == true && currentUser!.isAdmin) {
                               setState(() {
                                 _showPaiementSubmenu = !_showPaiementSubmenu;
                               });
                             } else {
+                              setState(() => currentSidebarRoute = item['route']);
                               Navigator.of(context).push(
                                 PageRouteBuilder(
                                   pageBuilder: (context, animation, secondaryAnimation) =>
@@ -169,7 +212,9 @@ Padding(
                                       child: _SidebarItem(
                                         icon: CupertinoIcons.arrow_right,
                                         label: "Dépenses",
+                                        isActive: currentSidebarRoute == '/depenses',
                                         onTap: () {
+                                          setState(() => currentSidebarRoute = '/depenses');
                                           Navigator.of(context).push(
                                             MaterialPageRoute(
                                               builder: (_) => _getPageFromRoute('/depenses'),
@@ -183,7 +228,9 @@ Padding(
                                       child: _SidebarItem(
                                         icon: CupertinoIcons.arrow_right,
                                         label: "Paiements Enfant",
+                                        isActive: currentSidebarRoute == '/paiements-enfant',
                                         onTap: () {
+                                          setState(() => currentSidebarRoute = '/paiements-enfant');
                                           Navigator.of(context).push(
                                             MaterialPageRoute(
                                               builder: (_) => _getPageFromRoute('/paiements-enfant'),
@@ -234,8 +281,14 @@ class _SidebarItem extends StatefulWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
+  final bool isActive;
 
-  const _SidebarItem({required this.icon, required this.label, required this.onTap, });
+  const _SidebarItem({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.isActive = false,
+  });
 
   @override
   State<_SidebarItem> createState() => _SidebarItemState();
@@ -256,16 +309,25 @@ class _SidebarItemState extends State<_SidebarItem> {
           duration: const Duration(milliseconds: 100),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: _isHovering ? Colors.blue[100] : Colors.transparent,
+            color: widget.isActive
+                ? const Color(0xFF3B82F6)
+                : _isHovering
+                    ? Colors.blue[100]
+                    : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
             children: [
-              Icon(widget.icon, color: Colors.black54),
+              Icon(widget.icon,
+                  color: widget.isActive ? Colors.white : Colors.black54),
               const SizedBox(width: 10),
               Text(
                 widget.label,
-                style: const TextStyle(color: Colors.black87, fontSize: 14),
+                style: TextStyle(
+                  color: widget.isActive ? Colors.white : Colors.black87,
+                  fontSize: 14,
+                  fontWeight: widget.isActive ? FontWeight.w600 : FontWeight.normal,
+                ),
               ),
             ],
           ),

@@ -1,0 +1,10 @@
+^C:\USERS\DIF\CRECHE_MANAGER\BUILD\WINDOWS\X64\CMAKEFILES\3A6A4AF37942212345059162D9BCFE55\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SC:/Users/dif/creche_manager/windows -BC:/Users/dif/creche_manager/build/windows/x64 --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/dif/creche_manager/build/windows/x64/newone.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

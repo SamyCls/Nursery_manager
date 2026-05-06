@@ -7,21 +7,21 @@ import 'screens/login.dart';
 import 'screens/dashboard.dart';
 import 'screens/essai.dart';
 import 'db/database_helper.dart';
+import 'db/seed_database.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-
-  // Reset trial for development - REMOVE THIS IN PRODUCTION
-  // Initialize French date formatting
-  await initializeDateFormatting('fr_FR', null);
-
-  // Desktop SQLite initialization
+  // Desktop SQLite initialization — must happen first
   sqfliteFfiInit();
   databaseFactory = databaseFactoryFfi;
 
   // Open/create database
   await DatabaseHelper.instance.database;
 
+  // Initialize French date formatting
+  await initializeDateFormatting('fr_FR', null);
+await seedDatabase();
   runApp(const CrecheManagerApp());
 }
 
