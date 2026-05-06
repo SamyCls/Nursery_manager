@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "C:/Users/dif/creche_manager/build/windows/x64/pdfium-download/CMakeFiles/pdfium-download"
+		},
+		{
+			"file" : "C:/Users/dif/creche_manager/build/windows/x64/pdfium-download/CMakeFiles/29e41e4e82acf156f8b8f4b474649e7f/pdfium-download.rule"
+		},
+		{
+			"file" : "C:/Users/dif/creche_manager/build/windows/x64/pdfium-download/CMakeFiles/a48f64f1042c1c5888813640b5c00170/pdfium-download-complete.rule"
+		},
+		{
+			"file" : "C:/Users/dif/creche_manager/build/windows/x64/pdfium-download/CMakeFiles/624ae4db6565f0d0a86c6f648ee7440c/pdfium-download-build.rule"
+		},
+		{
+			"file" : "C:/Users/dif/creche_manager/build/windows/x64/pdfium-download/CMakeFiles/624ae4db6565f0d0a86c6f648ee7440c/pdfium-download-configure.rule"
+		},
+		{
+			"file" : "C:/Users/dif/creche_manager/build/windows/x64/pdfium-download/CMakeFiles/624ae4db6565f0d0a86c6f648ee7440c/pdfium-download-download.rule"
+		},
+		{
+			"file" : "C:/Users/dif/creche_manager/build/windows/x64/pdfium-download/CMakeFiles/624ae4db6565f0d0a86c6f648ee7440c/pdfium-download-install.rule"
+		},
+		{
+			"file" : "C:/Users/dif/creche_manager/build/windows/x64/pdfium-download/CMakeFiles/624ae4db6565f0d0a86c6f648ee7440c/pdfium-download-mkdir.rule"
+		},
+		{
+			"file" : "C:/Users/dif/creche_manager/build/windows/x64/pdfium-download/CMakeFiles/624ae4db6565f0d0a86c6f648ee7440c/pdfium-download-patch.rule"
+		},
+		{
+			"file" : "C:/Users/dif/creche_manager/build/windows/x64/pdfium-download/CMakeFiles/624ae4db6565f0d0a86c6f648ee7440c/pdfium-download-test.rule"
+		},
+		{
+			"file" : "C:/Users/dif/creche_manager/build/windows/x64/pdfium-download/CMakeFiles/624ae4db6565f0d0a86c6f648ee7440c/pdfium-download-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"pdfium-download"
+		],
+		"name" : "pdfium-download"
+	}
+}

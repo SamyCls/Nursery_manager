@@ -1,0 +1,14 @@
+# Target labels
+ pdfium-download
+# Source files and their labels
+C:/Users/dif/creche_manager/build/windows/x64/pdfium-download/CMakeFiles/pdfium-download
+C:/Users/dif/creche_manager/build/windows/x64/pdfium-download/CMakeFiles/29e41e4e82acf156f8b8f4b474649e7f/pdfium-download.rule
+C:/Users/dif/creche_manager/build/windows/x64/pdfium-download/CMakeFiles/a48f64f1042c1c5888813640b5c00170/pdfium-download-complete.rule
+C:/Users/dif/creche_manager/build/windows/x64/pdfium-download/CMakeFiles/624ae4db6565f0d0a86c6f648ee7440c/pdfium-download-build.rule
+C:/Users/dif/creche_manager/build/windows/x64/pdfium-download/CMakeFiles/624ae4db6565f0d0a86c6f648ee7440c/pdfium-download-configure.rule
+C:/Users/dif/creche_manager/build/windows/x64/pdfium-download/CMakeFiles/624ae4db6565f0d0a86c6f648ee7440c/pdfium-download-download.rule
+C:/Users/dif/creche_manager/build/windows/x64/pdfium-download/CMakeFiles/624ae4db6565f0d0a86c6f648ee7440c/pdfium-download-install.rule
+C:/Users/dif/creche_manager/build/windows/x64/pdfium-download/CMakeFiles/624ae4db6565f0d0a86c6f648ee7440c/pdfium-download-mkdir.rule
+C:/Users/dif/creche_manager/build/windows/x64/pdfium-download/CMakeFiles/624ae4db6565f0d0a86c6f648ee7440c/pdfium-download-patch.rule
+C:/Users/dif/creche_manager/build/windows/x64/pdfium-download/CMakeFiles/624ae4db6565f0d0a86c6f648ee7440c/pdfium-download-test.rule
+C:/Users/dif/creche_manager/build/windows/x64/pdfium-download/CMakeFiles/624ae4db6565f0d0a86c6f648ee7440c/pdfium-download-update.rule
