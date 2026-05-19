@@ -8,7 +8,6 @@ const _kBg       = Color(0xFFF4F6FB);
 const _kCard     = Colors.white;
 const _kAccent   = Color(0xFF4A6CF7);
 const _kAdminClr = Color(0xFFE53E3E);
-const _kStdClr   = Color(0xFF4A6CF7);
 const _kBorder   = Color(0xFFE4E7F0);
 const _kLabel    = Color(0xFF8A94A6);
 const _kTitle    = Color(0xFF1A1D27);
@@ -445,7 +444,7 @@ class _ParametersScreenState extends State<ParametersScreen> {
 
   Widget _buildUserSection(String title, List<AppUser> users, UserRole role) {
     final isAdmin = role == UserRole.admin;
-    final accent  = isAdmin ? _kAdminClr : _kStdClr;
+    final accent  = isAdmin ? _kAdminClr : _kAccent;
 
     return _card(
       child: Column(
@@ -640,11 +639,11 @@ class _ParametersScreenState extends State<ParametersScreen> {
           const SizedBox(height: 20),
           Row(
             children: [
-              Expanded(child: _dataButton(Icons.upload_file, 'Export All Data', _kAccent)),
+              Expanded(child: _dataButton(Icons.upload_file, 'Export All Data')),
               const SizedBox(width: 12),
-              Expanded(child: _dataButton(Icons.download, 'Import Data', _kAccent)),
+              Expanded(child: _dataButton(Icons.download, 'Import Data')),
               const SizedBox(width: 12),
-              Expanded(child: _dataButton(Icons.backup, 'Backup Database', _kAccent)),
+              Expanded(child: _dataButton(Icons.backup, 'Backup Database')),
             ],
           ),
         ],
@@ -652,7 +651,7 @@ class _ParametersScreenState extends State<ParametersScreen> {
     );
   }
 
-  Widget _dataButton(IconData icon, String label, Color color) {
+  Widget _dataButton(IconData icon, String label) {
     return OutlinedButton(
       onPressed: () {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -668,7 +667,7 @@ class _ParametersScreenState extends State<ParametersScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 17, color: color),
+          Icon(icon, size: 17, color: _kAccent),
           const SizedBox(width: 8),
           Text(label,
               style: const TextStyle(

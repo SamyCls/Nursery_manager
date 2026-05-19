@@ -1,0 +1,10 @@
+^C:\USERS\DIF\CRECHE_MANAGER\BUILD\WINDOWS\X64\CMAKEFILES\3A6A4AF37942212345059162D9BCFE55\INSTALL_FORCE.RULE
+setlocal
+cd .
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

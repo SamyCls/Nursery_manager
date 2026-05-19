@@ -5,7 +5,6 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'screens/login.dart';
 import 'screens/dashboard.dart';
 import 'db/database_helper.dart';
-import 'db/seed_database.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,7 +18,6 @@ void main() async {
 
   // Initialize French date formatting
   await initializeDateFormatting('fr_FR', null);
-  await seedDatabase();
   runApp(const CrecheManagerApp());
 }
 

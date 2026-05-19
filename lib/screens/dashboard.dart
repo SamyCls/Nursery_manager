@@ -1,6 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../layout/main_layout.dart';
+import '../app_state.dart';
 import 'package:intl/intl.dart';
 import '/models/activity.dart';
 import '/db/activitydao.dart';
@@ -9,6 +9,7 @@ import '/db/presencedao.dart';
 import '/models/enfant.dart';
 import '/models/Presence.dart';
 import '/screens/enfant_screen.dart';
+import '/screens/enfant_profil_screen.dart';
 import '/screens/présence.dart';
 import '/screens/suivipaie.dart';
 import '/screens/depenses.dart';
@@ -39,7 +40,6 @@ class _DashboardPageState extends State<DashboardPage> {
   int totalEnfants = 0;
   int inscriptionsCeMois = 0;
   int presentsAujourdhui = 0;
-  int absentsAujourdhui = 0;
 
   @override
   void initState() {
@@ -90,25 +90,12 @@ class _DashboardPageState extends State<DashboardPage> {
       final List<Presence> presencesAujourdhui = await presenceDao
           .getPresencesByDate(aujourdhui);
 
-      // Debug: afficher les informations
-      print('Total enfants: $total');
-      print('Inscriptions ce mois: $inscriptionsMois');
-      print(
-        'Nombre de présences trouvées aujourd\'hui: ${presencesAujourdhui.length}',
-      );
-
-      // Vérification plus robuste des statuts
       int presents = 0;
-      int absents = 0;
 
       for (var presence in presencesAujourdhui) {
-        print(' - ${presence.enfantId}: ${presence.statut}');
-
         final statut = presence.statut.toLowerCase();
         if (statut.contains('présent') || statut.contains('present')) {
           presents++;
-        } else if (statut.contains('absent') || statut.contains('abscent')) {
-          absents++;
         }
       }
 
@@ -116,16 +103,12 @@ class _DashboardPageState extends State<DashboardPage> {
         totalEnfants = total;
         inscriptionsCeMois = inscriptionsMois;
         presentsAujourdhui = presents;
-        absentsAujourdhui = absents;
       });
     } catch (e) {
-      print('Erreur lors du chargement des statistiques: $e');
-      // En cas d'erreur, mettre des valeurs par défaut
       setState(() {
         totalEnfants = 0;
         inscriptionsCeMois = 0;
         presentsAujourdhui = 0;
-        absentsAujourdhui = 0;
       });
     }
   }
@@ -167,7 +150,6 @@ class _DashboardPageState extends State<DashboardPage> {
               totalEnfants: totalEnfants,
               inscriptionsCeMois: inscriptionsCeMois,
               presentsAujourdhui: presentsAujourdhui,
-              absentsAujourdhui: absentsAujourdhui,
             ), // Affiche les cartes de statistiques
             SizedBox(height: 24),
 
@@ -232,7 +214,9 @@ class _DashboardPageState extends State<DashboardPage> {
                                   label: 'Ajouter un enfant',
                                   color: const Color(0xFF3B82F6),
                                   onTap: () => Navigator.of(context).push(
-                                    MaterialPageRoute(builder: (_) => ListeEnfantsPage()),
+                                    MaterialPageRoute(
+                                      builder: (_) => EnfantProfilScreen(enfant: emptyEnfant),
+                                    ),
                                   ),
                                 ),
                                 _QuickActionCard(
@@ -243,30 +227,32 @@ class _DashboardPageState extends State<DashboardPage> {
                                     MaterialPageRoute(builder: (_) => PresenceScreen()),
                                   ),
                                 ),
-                                _QuickActionCard(
-                                  icon: Icons.add_card_rounded,
-                                  label: 'Ajouter un paiement',
-                                  color: const Color(0xFF0EA5E9),
-                                  onTap: () => Navigator.of(context).push(
-                                    MaterialPageRoute(builder: (_) => SuiviPaiementsScreen()),
+                                if (currentUser?.isAdmin == true) ...[
+                                  _QuickActionCard(
+                                    icon: Icons.add_card_rounded,
+                                    label: 'Ajouter un paiement',
+                                    color: const Color(0xFF0EA5E9),
+                                    onTap: () => Navigator.of(context).push(
+                                      MaterialPageRoute(builder: (_) => SuiviPaiementsScreen()),
+                                    ),
                                   ),
-                                ),
-                                _QuickActionCard(
-                                  icon: Icons.receipt_long_rounded,
-                                  label: 'Ajouter une dépense',
-                                  color: const Color(0xFFF59E0B),
-                                  onTap: () => Navigator.of(context).push(
-                                    MaterialPageRoute(builder: (_) => DepensesScreen()),
+                                  _QuickActionCard(
+                                    icon: Icons.receipt_long_rounded,
+                                    label: 'Ajouter une dépense',
+                                    color: const Color(0xFFF59E0B),
+                                    onTap: () => Navigator.of(context).push(
+                                      MaterialPageRoute(builder: (_) => DepensesScreen()),
+                                    ),
                                   ),
-                                ),
-                                _QuickActionCard(
-                                  icon: Icons.bar_chart_rounded,
-                                  label: 'Voir les statistiques',
-                                  color: const Color(0xFF8B5CF6),
-                                  onTap: () => Navigator.of(context).push(
-                                    MaterialPageRoute(builder: (_) => StatisticsScreen()),
+                                  _QuickActionCard(
+                                    icon: Icons.bar_chart_rounded,
+                                    label: 'Voir les statistiques',
+                                    color: const Color(0xFF8B5CF6),
+                                    onTap: () => Navigator.of(context).push(
+                                      MaterialPageRoute(builder: (_) => StatisticsScreen()),
+                                    ),
                                   ),
-                                ),
+                                ],
                               ],
                             ),
                           ),
@@ -367,15 +353,6 @@ class _WeeklyPlannerMiniState extends State<WeeklyPlannerMini> {
   DateTime selectedDate = DateTime(
     DateTime.now().year, DateTime.now().month, DateTime.now().day);
 
-  // Types d'activités disponibles
-  final List<String> activityTypes = [
-    'Jeux',
-    'Lecture',
-    'Sport',
-    'Art',
-    'Musique',
-  ];
-
   // Couleurs associées à chaque type d'activité
   final Map<String, Color> activityColors = {
     'Jeux':    const Color(0xFF3B82F6),
@@ -389,48 +366,9 @@ class _WeeklyPlannerMiniState extends State<WeeklyPlannerMini> {
   final TimeOfDay startHour = const TimeOfDay(hour: 8, minute: 0);
   final TimeOfDay endHour = const TimeOfDay(hour: 17, minute: 0);
   final int numberOfRows = 9;
-  double cellWidth = 160;
 
   String _formatDay(DateTime date) =>
       DateFormat('EEE d MMM yyyy', 'fr_FR').format(date);
-
-  // Charger les activités du jour depuis la liste en mémoire
-  List<Activity> _getActivitiesForDayAndClass(DateTime day) {
-    return widget.allActivities.where((activity) {
-      return activity.className == widget.selectedClass &&
-          activity.date.year == day.year &&
-          activity.date.month == day.month &&
-          activity.date.day == day.day;
-    }).toList()..sort(
-      (a, b) =>
-          (a.start.hour * 60 + a.start.minute) -
-          (b.start.hour * 60 + b.start.minute),
-    );
-  }
-
-  double _calculateTopOffsetForHeight(TimeOfDay time, double containerHeight) {
-    final totalMinutes =
-        (time.hour * 60 + time.minute) -
-        (startHour.hour * 60 + startHour.minute);
-    final totalAvailableMinutes =
-        (endHour.hour * 60 + endHour.minute) -
-        (startHour.hour * 60 + startHour.minute);
-    return (totalMinutes / totalAvailableMinutes) * containerHeight;
-  }
-
-  double _calculateHeightForHeight(
-    TimeOfDay start,
-    TimeOfDay end,
-    double containerHeight,
-  ) {
-    final startMinutes = start.hour * 60 + start.minute;
-    final endMinutes = end.hour * 60 + end.minute;
-    final durationMinutes = endMinutes - startMinutes;
-    final totalAvailableMinutes =
-        (endHour.hour * 60 + endHour.minute) -
-        (startHour.hour * 60 + startHour.minute);
-    return (durationMinutes / totalAvailableMinutes) * containerHeight;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -731,13 +669,11 @@ class StatusCards extends StatelessWidget {
   final int totalEnfants;
   final int inscriptionsCeMois;
   final int presentsAujourdhui;
-  final int absentsAujourdhui;
 
   const StatusCards({
     required this.totalEnfants,
     required this.inscriptionsCeMois,
     required this.presentsAujourdhui,
-    required this.absentsAujourdhui,
     Key? key,
   }) : super(key: key);
 
@@ -863,103 +799,4 @@ class StatusCard extends StatelessWidget {
   }
 }
 
-// ------------------------------------------------------------------
-// Widget qui affiche des rappels importants dans une zone colorée
-// ------------------------------------------------------------------
-class ImportantReminder extends StatelessWidget {
-  final List<String> alerts = ['Notif 1', 'Notif 2'];
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.orange.shade100,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: AnimatedAlert(alerts: alerts), // Animation de rappel
-    );
-  }
-}
-
-// -------------------------------------------------------------------------
-// Composant animé qui fait défiler les messages d'alerte un par un
-// -------------------------------------------------------------------------
-class AnimatedAlert extends StatefulWidget {
-  final List<String> alerts;
-
-  const AnimatedAlert({required this.alerts});
-
-  @override
-  State<AnimatedAlert> createState() => _AnimatedAlertState();
-}
-
-class _AnimatedAlertState extends State<AnimatedAlert>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<Offset> _animation;
-  int _currentIndex = 0;
-  bool _isDisposed = false; // <-- Flag pour arrêter la boucle
-
-  @override
-  void initState() {
-    super.initState();
-    _setupAnimation();
-    _startLoop(); // Lance l'animation en boucle
-  }
-
-  void _setupAnimation() {
-    _controller = AnimationController(
-      vsync: this,
-      duration: Duration(milliseconds: 700),
-    );
-
-    _animation = Tween<Offset>(
-      begin: Offset(1.0, 0.0),
-      end: Offset(0.0, 0.0),
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-  }
-
-  void _startLoop() {
-    Future.delayed(Duration(seconds: 1), () async {
-      while (mounted && !_isDisposed) {
-        await _controller.forward();
-        await Future.delayed(Duration(seconds: 3));
-        if (_isDisposed) break; // sécurité
-        await _controller.reverse();
-        await Future.delayed(Duration(milliseconds: 400));
-        if (_isDisposed) break; // sécurité
-
-        setState(() {
-          _currentIndex = (_currentIndex + 1) % widget.alerts.length;
-        });
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _isDisposed = true; // <-- stop la boucle
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SlideTransition(
-      position: _animation,
-      child: Row(
-        children: [
-          Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
-          SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              widget.alerts[_currentIndex],
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
